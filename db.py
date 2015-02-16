@@ -40,24 +40,75 @@ def getQuestion(questionId):
             curs.execute(SQL, questionId)
             question = curs.fetchone()
 
-            # This is a bit of an ugly query and we should consider seeing if it can be refactored
-            SQL = """SELECT TOKEN, COALESCE(YES_VALUE, 0), COALESCE(NO_VALUE,0) FROM TOKENS tk 
-            LEFT JOIN TOKEN_QUESTION_MAP tq ON tk.ID = tq.TOKEN_ID 
-            WHERE QUESTION_ID = %s OR QUESTION_ID IS NULL;"""
+            SQL = """SELECT tk.ID, TOKEN, YES_VALUE, NO_VALUE FROM TOKENS tk 
+            JOIN TOKEN_QUESTION_MAP tq ON tk.ID = tq.TOKEN_ID 
+            WHERE QUESTION_ID = %s;"""
             curs.execute(SQL, questionId)
             tokens = curs.fetchall()
     return [question, tokens]
 
-def createToken(name):
+# Note that there are stored procedures and trigger within the database to make sure that
+# TOKEN_QUESTION_MAP stays up to date whenever an INSERT happens in TOKENS.
+#
+# Here is an example of the stored procedure that gets triggered after TOKENS inserts:
+
+##CREATE OR REPLACE FUNCTION add_new_token()
+##RETURNS trigger AS $BODY$
+##DECLARE
+##    question record;
+##BEGIN
+##    FOR question in SELECT * FROM QUESTIONS
+##    LOOP
+##        INSERT INTO TOKEN_QUESTION_MAP (QUESTION_ID, TOKEN_ID, YES_VALUE, NO_VALUE) VALUES (question.ID, NEW.ID, 0, 0);
+##    END LOOP;
+##    RETURN NEW;
+##END;
+##$BODY$
+##LANGUAGE 'plpgsql';
+
+def createToken(token):
     with getDbConnection() as conn:
         with conn.cursor() as curs:
             SQL = """INSERT INTO TOKENS (TOKEN) VALUES (%s);"""
-            curs.execute(SQL, [name])
+            curs.execute(SQL, [token])
             conn.commit
+
+def createQuestion(question, yesList, noList, tokenIds):
+    with getDbConnection() as conn:
+        with conn.cursor() as curs:
+            SQL = """INSERT INTO QUESTIONS (QUESTION) VALUES (%s);"""
+            curs.execute(SQL, [question])
+
+            SQL = """SELECT currval('questions_id_seq');"""
+            curs.execute(SQL)
+            questionId = curs.fetchone()
+
+            for i in range(len(yesList)):
+                SQL = """INSERT INTO TOKEN_QUESTION_MAP (QUESTION_ID, TOKEN_ID, YES_VALUE, NO_VALUE)
+                        VALUES (%s, %s, %s, %s)"""
+                curs.execute(SQL, [questionId, tokenIds[i], yesList[i], noList[i]])
+            conn.commit
+
+def updateQuestion(questionId, yesList, noList, tokenIds):
+    with getDbConnection() as conn:
+        with conn.cursor() as curs:
+            for i in range(len(yesList)):
+                SQL = """UPDATE TOKEN_QUESTION_MAP SET YES_VALUE=%s, NO_VALUE=%s WHERE QUESTION_ID = %s AND TOKEN_ID = %s"""
+                curs.execute(SQL, [yesList[i], noList[i], questionId, tokenIds[i]])
+            conn.commit
+
 
 def deleteTokens(tokenIds):
     with getDbConnection() as conn:
         with conn.cursor() as curs:
+
+            SQL = """DELETE FROM TOKEN_QUESTION_MAP WHERE"""
+            for tId in tokenIds:
+                if tokenIds.index(tId) != 0:
+                    SQL += " OR"
+                SQL += " TOKEN_ID = %s"
+            SQL += ';'
+            curs.execute(SQL, tokenIds)
 
             # Alternativly, instead of constructing the SQL delete string with a 
             # for loop we could have used psycopg2's "executemany" function
@@ -71,6 +122,5 @@ def deleteTokens(tokenIds):
                     SQL += " OR"
                 SQL += " ID = %s"
             SQL += ';'
-
             curs.execute(SQL, tokenIds)
             conn.commit
