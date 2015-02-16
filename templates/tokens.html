@@ -4,10 +4,18 @@
     <title>Local Projects Test</title>
 </head>
 <body>
-    <ul id="navigation">
-    {% for item in tokens %}
-        <li>{{ item }}</li>
-    {% endfor %}
-    </ul>
+	<h1>Current Tokens</h1>
+    <form method="POST" action="tokens/delete">
+	    {% for item in tokens %}
+	        <input type="checkbox" name="tokenId" value="{{item[0]}}">{{ item[1] }}</input><br>
+	    {% endfor %}
+	    <input type="submit" value="Delete">
+    </form>
+    <br>
+    <form method="POST">
+    	Token:<br>
+    	<input type="text" name="token">
+    	<input type="submit" value="Submit">
+    </form>
 </body>
 </html>
