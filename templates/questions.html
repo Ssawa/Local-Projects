@@ -1,0 +1,14 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html lang="en">
+<head>
+    <title>Local Projects Test</title>
+</head>
+<body>
+	<h1>Current Questions</h1>
+    <ul>
+    {% for item in questions %}
+        <li><a href="questions/{{ item[0] }}">{{ item[1] }}</a></li>
+    {% endfor %}
+    <ul>
+</body>
+</html>
