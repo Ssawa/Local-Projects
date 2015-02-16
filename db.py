@@ -124,3 +124,14 @@ def deleteTokens(tokenIds):
             SQL += ';'
             curs.execute(SQL, tokenIds)
             conn.commit
+
+def deleteQuestion(questionId):
+    with getDbConnection() as conn:
+        with conn.cursor() as curs:
+
+            SQL = """DELETE FROM TOKEN_QUESTION_MAP WHERE QUESTION_ID = %s;"""
+            curs.execute(SQL, questionId)
+
+            SQL = """DELETE FROM QUESTIONS WHERE ID = %s"""
+            curs.execute(SQL, questionId)
+            conn.commit

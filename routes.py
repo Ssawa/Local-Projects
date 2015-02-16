@@ -37,4 +37,10 @@ def question(questionId):
         noList = request.form.getlist('no')
         tokenIds = request.form.getlist('id')
         db.updateQuestion(questionId, yesList, noList, tokenIds)
-    return render_template('question-single.html', question=db.getQuestion(questionId))
+    return render_template('question-single.html', question=db.getQuestion(questionId), questionId=questionId)
+
+@routes.route('/admin/questions/<questionId>/delete', methods=['POST'])
+def deleteQuestion(questionId):
+    db.deleteQuestion(questionId)
+    return redirect(url_for('.questions'))
+
