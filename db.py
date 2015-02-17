@@ -47,6 +47,31 @@ def getQuestion(questionId):
             tokens = curs.fetchall()
     return [question, tokens]
 
+def getAllQuestions():
+    questions = None
+    questionTokenMap = []
+    with getDbConnection() as conn:
+        with conn.cursor() as curs:
+            SQL = """SELECT ID, QUESTION FROM QUESTIONS"""
+            curs.execute(SQL)
+            questions = curs.fetchall()
+
+            for qst in questions:
+                questionDict = {"questionName": qst[1]}
+                SQL = """SELECT tk.ID, TOKEN, YES_VALUE, NO_VALUE FROM TOKENS tk 
+                JOIN TOKEN_QUESTION_MAP tq ON tk.ID = tq.TOKEN_ID 
+                WHERE QUESTION_ID = %s;"""
+                curs.execute(SQL, [qst[0]])
+                tokensResponse = curs.fetchall()
+                tokensList = []
+                for tok in tokensResponse:
+                    tokenDict = {"tokenId": tok[0], "tokenName": tok[1], "Yes": tok[2], "No": tok[3]}
+                    tokensList.append(tokenDict)
+                questionDict["tokens"] = tokensList
+                questionTokenMap.append(questionDict)
+
+    return questionTokenMap
+
 # Note that there are stored procedures and trigger within the database to make sure that
 # TOKEN_QUESTION_MAP stays up to date whenever an INSERT happens in TOKENS.
 #
