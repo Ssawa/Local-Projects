@@ -11,6 +11,17 @@ void bindJavascript(Javascript js) {
   javascript = js;
 }
 
+boolean loading = true;
+boolean gameOver = false;
+
+void setLoading(boolean bool) {
+  loading = bool;
+}
+
+void setGameOver(boolean bool) {
+  gameOver = bool;
+}
+
 Paper paper;
 
 void showPaper() {
@@ -36,6 +47,16 @@ void setup(){
 void draw(){
   background( 0, 121, 184 );
   paper.draw();
+  if (loading) {
+    fill(0);
+    textSize(70);
+    text("Loading...", width / 2 - 100, height / 2)
+  }
+  if (gameOver) {
+    fill(0);
+    textSize(70);
+    text("GAME OVER", width / 2 - 200, height / 2)
+  }
 }
 
 void mousePressed() {
