@@ -1,5 +1,17 @@
-Paper paper;
+// Todo - REFACTOR TO REMOVE ALL MAGIC NUMBERS
 
+interface Javascript {
+  void yesCalled();
+  void noCalled();
+}
+
+Javascript javascript;
+
+void bindJavascript(Javascript js) {
+  javascript = js;
+}
+
+Paper paper;
 
 void showPaper() {
   paper.setShowing(true);
@@ -7,6 +19,10 @@ void showPaper() {
 
 void hidePaper() {
   paper.setShowing(false);
+}
+
+void setQuestion(String question) {
+  paper.setQuestion(question);
 }
 
 // Setup the Processing Canvas
@@ -28,16 +44,39 @@ void mousePressed() {
   }
  }
 
-class Paper {
+abstract class Drawable {
+  int x, y;
 
-  int y = 500;
+  Drawable(int x, int y) {
+    this.x = x;
+    this.y = y;
+  }
+
+  int getX() {
+    return this.x;
+  }
+
+  int getY() {
+    return this.y;
+  }
+
+  void moveY(int y) {
+    this.y -= y;
+  }
+
+  abstract void draw();
+}
+
+class Paper extends Drawable {
+
   String question = "Test Question";
-  boolean showing = true;
+  boolean showing = false;
   List<HolePunch> holepunches = new ArrayList<HolePunch>();
   ResponseBox yesBox = new ResponseBox(200, (500 + 200) - 100, "YES");
   ResponseBox noBox = new ResponseBox(1000 - 200, (500 + 200) - 100, "NO");
-  int getY() {
-    return this.y;
+
+  Paper() {
+    super(0, height);
   }
 
   void setShowing(boolean bool) {
@@ -47,30 +86,40 @@ class Paper {
     showing = bool;
   }
 
+  void setQuestion(String question) {
+    this.question = question;
+  }
+
   void clicked(int x, int y) {
     holepunches.add(new HolePunch(x, y));
 
     // Check to see if yes or no was clicked
     // check yes
     if (x > yesBox.getX() && x < yesBox.getX() + 80 && y > yesBox.getY() &&  y < yesBox.getY() + 80) {
-      showing = false;
+      hidePaper();
+      if (javascript != null) {
+        javascript.yesCalled();
+      }
     }
 
     // check no
     if (x > noBox.getX() && x < noBox.getX() + 80 && y > noBox.getY() &&  y < noBox.getY() + 80) {
-      showing = false;
+      hidePaper();
+      if (javascript != null) {
+        javascript.noCalled();
+      }
     }
   }
 
   void move(u) {
-      if (showing && y > 500 - 190) {
+      if (showing && y > height - 190) {
         y -= u;
         for (hole : holepunches) {
           hole.moveY(u);
         }
         yesBox.moveY(u);
         noBox.moveY(u);
-      } else if (!showing && y < 500 ){
+      } else if (!showing && y < height ){
         y += u;
         for (hole : holepunches) {
           hole.moveY(-u);
@@ -81,7 +130,7 @@ class Paper {
   }
 
   void draw() {
-    move(4);
+    move(15);
 
     stroke(255);
     strokeWeight(1);
@@ -100,26 +149,12 @@ class Paper {
   }
 }
 
-class ResponseBox {
-  int x, y;
+class ResponseBox extends Drawable {
   String response;
 
   ResponseBox (int x, int y, String resp) {
-    this.x = x;
-    this.y = y;
+    super(x, y);
     this.response = resp;
-  }
-
-  void moveY(int y) {
-    this.y -= y;
-  } 
-
-  int getX() {
-    return x;
-  }
-
-  int getY() {
-    return y;
   }
 
   void draw() {
@@ -134,18 +169,12 @@ class ResponseBox {
   }
 }
 
-class HolePunch {
-  int x, y;
+class HolePunch extends Drawable {
   Chad chad;
 
   HolePunch (int x, int y) {
-    this.x = x;
-    this.y = y;
+    super(x, y);
     chad = new Chad(x, y);
-  }
-
-  void moveY(int y) {
-    this.y -= y;
   }
 
   void draw() {
@@ -157,14 +186,13 @@ class HolePunch {
   }
 }
 
-class Chad {
-  int x, y, velX, velY;
+class Chad extends Drawable {
+  int velX, velY;
   double gravity = 2.5;
 
 
   Chad (int x, int y) {
-    this.x = x;
-    this.y = y;
+    super(x, y);
     velX = random(-25, 25);
     velY = random(-25, 0)
   }

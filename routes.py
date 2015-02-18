@@ -16,7 +16,7 @@ def game():
 # Very simple api call that will be accessed via ajax (Or should it just be passed in
 # as part of the template?) to initilize the game with all the information it needs,
 # in JSON format
-@routes.route('/api/gameinfo')
+@routes.route('/api/gameinfo.json')
 def getGameInfo():
     # Obviously, doing two different database hits for one api call is sloppy but for
     # prototyping purposes it makes sense just to reuse the functions we already wrote

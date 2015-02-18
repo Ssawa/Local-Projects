@@ -3,9 +3,15 @@
 <head>
     <title>Local Projects Test</title>
     <script src="/static/processing.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.js"></script>
+    <!-- 
+    Only really using for the ajax functionality, we could potentially find a different system 
+    for doing this and get rid of dragging in all of jquery. As long as we're including it though, we 
+    may as well use it for DOM manipulation instead of vanilla javascript.
+    -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 </head>
 <body>
 	<canvas id="gameCanvas" data-processing-sources="/static/game.pde"></canvas>
+	<script src="/static/game.js"></script>
 </body>
 </html>
