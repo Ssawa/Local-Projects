@@ -1,4 +1,4 @@
-# Local-Projects
+# Python-Web-App
 An example project coding project
 
 Currently hosted on heroku at:
